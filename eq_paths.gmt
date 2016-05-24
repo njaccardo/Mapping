@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# Script to Plot EAGLE station locations
+#   Natalie Accardo (LDEO)
+#
+
+gmt gmtset MAP_FRAME_PEN  2
+gmt gmtset MAP_FRAME_WIDTH 0.1
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset FONT_TITLE Helvetica-Bold
+gmt gmtset FONT_LABEL Helvetica-Bold 14p
+gmt gmtset PS_PAGE_ORIENTATION portrait
+gmt gmtset PS_MEDIA=A4
+gmt gmtset FORMAT_GEO_MAP ddd.mmF
+
+# Colors!
+RED="231/47/39"
+ORANGE="255/165/0"
+GREEN="19/166/50"
+LGREEN="69/179/113"
+DBLUE="44/77/143"
+BLUE="65/105/225"
+TURQ="64/224/200"
+PURP="186/85/211"
+LBLUE="135/206/235"
+GREY="80/80/80"
+YELLOW="255/228/15"
+
+PS1=eq_paths.ps
+# REGION="20/52/-20/20"
+REGION="32/37/-12.5/-4.2"
+SCALE=1i
+CPT=etopo1.cpt
+GRID="../grds/etopo1.grd"
+INT="../grds/etopo1_int.grd"
+TESTT=test_africa
+SEGM2=plt_colr.seg
+VOLC=../tectonic/volcanos.txt
+EQPATH1=station_paths_201503110011
+EQPATH2=OBS_paths_201503110011
+
+# Datasets
+OBS="segment_obs_deploy.txt"
+SEIS14="Seismic_Summer2014.txt"
+SEIS2013=seis_2013_latlon.txt
+
+gmt psbasemap -R$REGION -Jm$SCALE -Bf1a2/f1a2:."":WeSn -V -K > $PS1
+
+gmt grdimage $GRID -I$INT -C$CPT -R -Jm -Bf5a10/f5a10:.:WeSn -V -K -O >> $PS1
+# gmt pscoast -R -Jm -Dh -C$BLUE -O -K >> $PS1
+# gmt pscoast -R -Jm -Dh -N1/2p/0/0/0 -N2/2p/86/86/86 -O -K >> $PS1
+gmt pscoast -Jm -R -S$LBLUE -Df -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+
+##### plot plate boundaries
+#psxy $SEGM2 -W2p -m -Jm -R -V -O -K >> $PS1
+#### plot GSN station locations
+#psxy temp -St0.2i -W1p,255/255/255 -G216/77/151 -Jm -R -O -V -K -: >> $PS1
+#### plot volcanos
+gmt psxy $VOLC -St0.1i -W1p,/0/0/0 -Gred -Jm -R -O -V -K -: >> $PS1
+
+gmt psxy LM_outline -G$LBLUE -Jm -R -V -O -K -: >> $PS1
+
+gmt psxy $EQPATH1 -W1p,0/255/0 -Jm -R -O -V -: -K >> $PS1
+gmt psxy $EQPATH2 -W1p,0/0/255 -Jm -R -O -V -K -: >> $PS1
+
+# Plot seismic stations
+gmt psxy $SEIS2013 -Si0.3 -G$LGREEN -Jm -R -V -O -K -: >> $PS1
+awk '{print $2 " " $3}' $SEIS14 > temp
+gmt psxy temp -Si0.3 -G$LGREEN -Jm -R -V -O -K -: >> $PS1
+
+# Plot OBS locations
+awk '{print $2 " " $3}' $OBS > temp4
+gmt psxy temp4 -Sc0.15 -G255/255/255 -Jm -R -V -O >> $PS1
+
+gs $PS1
+

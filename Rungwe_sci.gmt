@@ -1,0 +1,115 @@
+#!/bin/bash
+#
+# Script to Plot EAGLE station locations
+#   Natalie Accardo (LDEO)
+#
+
+gmtset FRAME_PEN 10
+gmtset FRAME_WIDTH 0.075
+gmtset ANOT_OFFSET 0.075
+gmtset BASEMAP_TYPE fancy
+
+gmtset ANOT_FONT_SIZE 12p
+gmtset GRID_PEN 0.3p
+gmtset ANOT_FONT Helvetica-Bold
+gmtset ANOT_FONT_SIZE 12
+gmtset HEADER_FONT Helvetica-Bold
+gmtset HEADER_FONT_SIZE 14p
+gmtset LABEL_FONT Helvetica-Bold
+gmtset LABEL_FONT_SIZE 12p
+gmtset PAGE_ORIENTATION portrait
+gmtset PAPER_MEDIA letter+
+#gmtset PAPER_MEDIA=Custom_25ix32i
+gmtset PLOT_DEGREE_FORMAT ddd.mmF
+
+PS1=SEGMeNT_science.ps
+INT="../grds/etopo1_int.grd"
+REGION="32/36/-12/-8"
+SCALE=1.7i
+CPT="../regional/ethiopia.cpt"
+GRID="../grds/etopo1.grd"
+
+# Colors!
+RED="231/47/39"
+ORANGE="255/165/0"
+GREEN="19/166/50"
+LGREEN="69/179/113"
+DBLUE="44/77/143"
+BLUE="65/105/225"
+TURQ="64/224/200"
+PURP="186/85/211"
+
+# Datasets
+GEOCHEM=geochem_latlon.txt
+SEIS=segment_seis.txt
+SEIS2013=seis_2013_latlon.txt
+VOLC="../regional/volcanos.txt"
+MT="MT_latlon.txt"
+GPS="GPS_latlon.txt"
+
+grdgradient $GRID -A270 -Nt0.5 -Getopo2_int.grd
+grdimage $GRID -I$INT -C$CPT -R$REGION -Jm$SCALE -Bf0.5a1/f0.5a1:.:WeSn -V -K -Y5 -X3 > $PS1
+pscoast -Jm -R -S126/188/209 -Di -W1/0/0/0 -V -O -K >> $PS1
+
+psbasemap -Jm -R -Bf0.5g0.5/f0.5g0.5:."":WeSn -V -O -K >> $PS1
+
+# Plot the volcanos
+# psxy $VOLC -St0.15i -Gred -Jm -R -O -V -K -: >> $PS1
+
+# Plot geochem locations
+psxy $GEOCHEM -Sd0.3 -G$BLUE -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot MT locations
+psxy $MT -Sc0.25 -G$TURQ -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot GPS locations
+psxy $GPS -Ss0.45 -G255/255/255 -W2p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot seismic stations
+psxy $SEIS2013 -Si0.35 -G$ORANGE -W1p,0/0/0 -Jm -R -V -O -K -: >> $PS1
+psxy $SEIS -Si0.35 -G$RED -W1p,0/0/0 -Jm -R -V -O >> $PS1
+
+
+# 
+# cat $ACS | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$1, $2, 9, 0, 31, "CM", $3)}' > $ACS_1off
+# psxy   $ACS_1off -Sc0.35 -G3/86/155 -W1p,0/0/0 -Jm -R -V -O -K -: >> $PS1
+# pstext  $ACS_1off -G3/86/155 -D0.0/-0.4 -Jm -R -O -V -K -: >> $PS1
+# 
+# 
+# Then Phase 3
+# want to follow this format
+# -144.84803      10.77550        8       0       31      CM      B05
+# cat $A07 | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$2, $1, 9, 0, 31, "RM", $3)}' > $A07_1off
+# psxy   $A07_1off -Sc0.35 -G238/113/25 -W1p,0/0/0 -Jm -R -O -V -K >> $PS1
+# pstext  $A07_1off  -D-0.4/-0.0  -Jm -R -O -V -K >> $PS1
+# 
+# EAGLE
+# cat $PHASE1 | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$1, $2, 15, 231/47/39, 31, "CM", $3)}' > $PHASE1_1off
+# psxy   $PHASE1_1off -Sc0.35 -G231/47/39 -W1p,0/0/0 -Jm -R -O -K >> $PS1
+# 
+# Then EKBSE
+# cat $EKBSE | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$2, $1, 15, 0, 31, "CM", $3)}' > $EKBSE_1off
+# psxy $EKBSE_1off -Sc0.35 -G30/144/255 -W1p,0/0/0 -Jm -R -V -O -K  >> $PS1
+# 
+# 
+# The GSN stations
+# psxy -Sc0.35 -G255/255/255 -W1p,0/0/0 -Jm -R -V -O -K >> $PS1 <<!
+# 38.6798 8.8952
+# 42.847 11.53
+# !
+# 
+# 
+#  psscale -D1.5i/-0.5i/4i/0.5ih -S -O -Cethiopia.cpt -B500:Elevation:/:m: >> $PS1
+
+gmtset COLOR_MODEL RGB
+gmtset FRAME_PEN 3
+gmtset FRAME_WIDTH 0.075
+
+#open -a preview $PS1
+gs $PS1
+# pstopdf $PS1
+# open EG_Big.pdf

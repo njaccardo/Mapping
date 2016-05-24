@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# Tectonic map
+#   Natalie Accardo (LDEO)
+#
+# Modified for GMT 5.1.1
+
+gmt gmtset MAP_FRAME_PEN  3
+gmt gmtset MAP_FRAME_WIDTH 0.1
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset FONT_TITLE Helvetica-Bold
+gmt gmtset FONT_LABEL Helvetica-Bold
+gmt gmtset PS_PAGE_ORIENTATION portrait
+gmt gmtset PS_MEDIA=Custom_8.5ix11i
+gmt gmtset FORMAT_GEO_MAP ddd.mmF
+
+# COLORS
+BLUE="44/77/143"
+RED="231/47/39"
+
+PS1=tectonic_Malawi.ps
+REGION="30/37/-12/-5"
+# REGION="25/52/-20/20"
+SCALE=1.i
+CPT=LMalawi.cpt
+GRID="../grds/etopo1.grd"
+ILUM=../grds/etopo1_int.grd
+EQS=all_EARS_eq
+VOLC=../tectonic/volcanos.txt
+BATH_GRID="/Users/naccardo/Dropbox/SEGMeNT/grids_scripts/bathy_from_mcs/all_bath_nn.grd"
+bathymetry_cpt=malawi_bathymetry.cpt
+DEPTH_CPT="eq_depth.cpt"
+
+rm $PS1
+# gmt makecpt -Cglobe > ethiopia.cpt
+#psbasemap -R$REGION -Jm$SCALE -X2 -Y2 -Bf1a2/f1a2:."":WeSn -V -K > $PS1
+# grdgradient $GRID -A270 -Nt0.5 -G$ILUM
+gmt grdimage $GRID -I$ILUM -C$CPT -R$REGION -Jm$SCALE -Bf1a2/f1a2:.:WeSn -V -K > $PS1
+#grdcontour $GRID -Jm -R -C1000 -W2/162/88/61 -O -K >>$PS1
+#	pscoast -R -Jm -Dh -W1p/3/86/155 -S126/188/209 -N1/1p/0/0/0 -O -K >> $PS1
+# pscoast -R -Jm -Dh -W2p,0/0/0 -O -K -I0/1p,$BLUE -I1/1p,$BLUE -I2/1p,$BLUE >> $PS1
+# pscoast -R -Jm -Dh -N1/2p/0/0/0 -N2/2p/86/86/86 -C -O -K >> $PS1
+
+gmt pscoast -R -Jm -Dh -C$BLUE -O -K -I0/1p,255/255/255 >> $PS1
+gmt pscoast -R -Jm -Dh -N1/1p,0/0/0 -N2/2p,86/86/86 -O -K >> $PS1
+
+
+##### plot plate boundaries
+
+#### plot volcanos
+gmt psxy $VOLC -St0.1i -W1p,0/0/0 -Gred -Jm -R -O -V -: >> $PS1
+
+# plot malawi bathymetry
+# gmt grdimage $BATH_GRID -C$bathymetry_cpt -Q -Jm -R -V -O -K >> $PS1
+# echo here3
+#psscale -D7.5i/3i/10c/1.25c -L -S -X-1 -Y-1 -Cglobe -O -K >> $PS1
+
+
+open $PS1
+

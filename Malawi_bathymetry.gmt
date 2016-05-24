@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+# Script to Plot Lake Malawi
+#   Natalie Accardo (LDEO)
+#
+
+gmt gmtset MAP_FRAME_PEN  2
+gmt gmtset MAP_FRAME_WIDTH 0.1
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset FONT_TITLE Helvetica-Bold
+gmt gmtset FONT_LABEL Helvetica-Bold 14p
+gmt gmtset PS_PAGE_ORIENTATION portrait
+gmt gmtset PS_MEDIA=A4
+gmt gmtset FORMAT_GEO_MAP ddd.mmF
+
+PS1=malawi_bathymetry.ps
+INT="../grds/LMalawi_SRT3m.int"
+REGION="33.85/35/-12/-9.3"
+SCALE=3.i
+CPT="LMalawi.cpt"
+GRID="../grds/LMalawi_SRT3m.grd"
+BATH_GRID="/Users/naccardo/Dropbox/SEGMeNT/grids_scripts/bathy_from_mcs/all_bath_nn.grd"
+bathymetry_cpt=malawi_bathymetry.cpt
+
+# Colors!
+RED="231/47/39"
+ORANGE="255/165/0"
+GREEN="19/166/50"
+LGREEN="69/179/113"
+DBLUE="44/77/143"
+BLUE="65/105/225"
+TURQ="64/224/200"
+PURP="186/85/211"
+LBLUE="135/206/235"
+GREY="120/120/120"
+YELLOW="255/228/15"
+
+# Datasets
+OBS="segment_obs_deploy.txt"
+
+cat SEGMeNT_shot_leg1.txt > all_shot
+cat SEGMeNT_shot_leg2.txt >> all_shot
+cat SEGMeNT_shot_leg3.txt >> all_shot
+cat SEGMeNT_shot_leg4.txt >> all_shot
+ 
+rm $PS1
+
+gmt makecpt -Cjet -T0/800/100 -Z -I > malawi_bathymetry.cpt
+# gmt grdgradient $GRID -A270 -Nt0.5 -G$INT
+# gmt makecpt -Cafar.cpt -T0/3000/500 -Z > $CPT
+# gmt makecpt -Cpolar.cpt -T0/270/90 -V > $SHOT_CPT
+gmt grdimage $GRID -I$INT -C$CPT -R$REGION -Jm$SCALE -Bf0.5a1/f0.5a1:.:WeSn -V -K -Y5 -X3 > $PS1
+# gmt pscoast -Jm -R -Df -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+gmt pscoast -Jm -R -S255/255/255 -Df -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+# gmt psbasemap -Jm -R -Bf0.5g0.5/f0.5g0.5:."":WeSn -V -O -K >> $PS1
+
+# Plot lake malawi
+# awk '{print $2 " " $3}' Lake_Malawi_Simple_latlon.txt > temp
+gmt psxy LM_outline -G255/255/255 -Jm -R -V -O -K -: >> $PS1
+
+# plot bathymetry
+gmt grdimage $BATH_GRID -C$bathymetry_cpt -Q -Jm -R -V -O -K >> $PS1
+
+# plot OBS depths
+awk '{print $2 " " $3 " " $4}' $OBS > temp4
+gmt psxy temp4 -Sc0.3 -W2p,$GREY -C$bathymetry_cpt -Jm -R -V -O -K >> $PS1
+
+awk '{print $2 " " $3 " " $4}' segment_obs_BB_deploy.txt > temp4
+gmt psxy temp4 -Sc0.3 -W2p,0/0/0 -C$bathymetry_cpt -Jm -R -V -O -K >> $PS1
+
+gmt psscale -D1.5i/-0.5i/4i/0.5ih -X0.5 -S -O -P -C$bathymetry_cpt -B100:"Bathymetry":/:m: >> $PS1
+open $PS1

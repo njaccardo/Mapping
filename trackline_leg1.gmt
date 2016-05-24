@@ -1,0 +1,117 @@
+#!/bin/bash
+#
+# Script to Plot Lake Malawi
+#   Natalie Accardo (LDEO)
+#
+
+gmt gmtset MAP_FRAME_PEN  2
+gmt gmtset MAP_FRAME_WIDTH 0.1
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset FONT_TITLE Helvetica-Bold
+gmt gmtset FONT_LABEL Helvetica-Bold 14p
+gmt gmtset PS_PAGE_ORIENTATION portrait
+gmt gmtset PS_MEDIA=Custom_15ix15i
+gmt gmtset FORMAT_GEO_MAP ddd.mmF
+
+PS1=SEGMeNT_trackline_leg1.ps
+INT="../grds/LMalawi_SRT3m.int"
+REGION="33.85/35/-12/-9.3"
+SCALE=3i
+CPT="LMalawi.cpt"
+SHOT_CPT="shot4.cpt"
+GRID="../grds/LMalawi_SRT3m.grd"
+
+# Colors!
+RED="231/47/39"
+ORANGE="255/165/0"
+GREEN="19/166/50"
+LGREEN="69/179/113"
+DBLUE="44/77/143"
+BLUE="65/105/225"
+TURQ="64/224/200"
+PURP="186/85/211"
+LBLUE="135/206/235"
+GREY="80/80/80"
+YELLOW="255/228/15"
+
+# Datasets
+# tracks=shot4plot_leg1.txt
+tracks=SEGMeNT_shot_leg1.txt 
+labels=labeled_shots_250.txt
+GEOCHEM=geochem_latlon.txt
+SEIS14="Seismic_Summer2014.txt"
+SEIS2013=seis_2013_latlon.txt
+VOLC="../regional/volcanos.txt"
+MT="MT_latlon.txt"
+MT14="MT_Summer2014.txt"
+GPS="GPS_latlon.txt"
+OBS="segment_obs_deploy.txt"
+MCS500="new_locs/500_cu_inch.mcs"
+MCS1540="new_locs/1540_cu_inch.mcs"
+MCS3120="new_locs/3120_cu_inch.mcs"
+MCS1="mcs_leg1_xy.txt"
+
+rm $PS1
+# gmt grdgradient $GRID -A270 -Nt0.5 -G$INT
+# gmt makecpt -Cafar.cpt -T0/3000/500 -Z > $CPT
+# gmt makecpt -Cpolar.cpt -T0/270/90 -V > $SHOT_CPT
+# gmt makecpt -Cjet.cpt -T-50/300/50 -V > shot2.cpt 
+
+gmt grdimage $GRID -I$INT -C$CPT -R$REGION -Jm$SCALE -Bf0.25a0.5/f0.25a0.5:.:WeSn -V -K -Y5 -X2 > $PS1
+# gmt pscoast -Jm -R -Df -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+gmt pscoast -Jm -R -S$LBLUE -Df -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+# gmt psbasemap -Jm -R -Bf0.5g0.5/f0.5g0.5:."":WeSn -V -O -K >> $PS1
+
+# Plot lake malawi
+# awk '{print $2 " " $3}' Lake_Malawi_Simple_latlon.txt > temp
+gmt psxy LM_outline -G$LBLUE -Jm -R -V -O -K -: >> $PS1
+
+awk '{print $2 " " $3}' $OBS > temp4
+gmt psxy temp4 -Sc0.25 -W1p,0/0/0 -G$YELLOW -Jm -R -V -O -K >> $PS1
+
+# Plot geochem locations
+gmt psxy $GEOCHEM -Sd0.3 -G255/255/255 -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot GPS locations
+gmt psxy $GPS -Sa0.7 -G$TURQ -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot MT locations
+gmt psxy $MT -Sc0.35 -G$BLUE -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+awk '{print $3 " " $4}' $MT14 > temp2
+gmt psxy temp2 -Sc0.35 -G$BLUE -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot seismic stations
+# gmt psxy $SEIS2013 -Si0.35 -G$LGREEN -W1p,0/0/0 -Jm -R -V -O -K -: >> $PS1
+awk '{print $2 " " $3}' $SEIS14 > temp
+gmt psxy temp -Si0.35 -GRED -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+# gmt psxy $SEIS -Si0.35 -G$RED -W1p,0/0/0 -Jm -R -V -O -: >> $PS1
+
+## Plot shot locations
+# all shots
+awk '{print $1 " " $2 " " $4}' $tracks > temp
+gmt psxy temp -Sc0.075 -C$SHOT_CPT -Jm -R -V -O -: -K >> $PS1 
+
+# every 100 white
+awk '($3%100 <1){print $1 " " $2 " " $4}' $tracks > temp100
+gmt psxy temp100 -Sc0.07 -Gwhite -Jm -R -V -O -: -K >> $PS1 
+
+# label every 500
+awk '($3%500 == 0){print $1 " " $2 " 6 0 1 LT " $3}' $tracks > temp500
+gmt pstext temp500 -R -Jm -V -D0/-0.05 -K -O -P -: >> $PS1
+awk '($3%500 == 0){print $1 " " $2}' $tracks > temp500
+gmt psxy temp500 -Sc0.07 -Gblack -Jm -R -V -O -: -K >> $PS1
+
+textoff="-2/0.1"
+# Label Port Locations
+echo "Nkhata Bay" | awk '{printf "34.28 -11.52 10 0 1 LT %s", $1 " " $2}' | gmt pstext -R -Jm -D$textoff -V -K -O -P >> $PS1
+echo "Chilumba" | awk '{printf "34.25 -10.4 10 0 1 LT %s", $1}' | gmt pstext -R -Jm -D$textoff -V -K -O -P >> $PS1
+
+# plot circles at the ports
+gmt psxy -Sn0.3 -G0/0/0 -Jm -R -V -O -K -: >> $PS1 <<EOF 
+-11.52 34.28
+-10.4 34.25
+EOF
+
+gmt psscale -D1.5i/-0.5i/4i/0.5ih -X0.5 -S -O -P -C$SHOT_CPT -B25:"Shot Spacing":/:m: >> $PS1
+
+gs $PS1

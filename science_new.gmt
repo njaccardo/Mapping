@@ -1,0 +1,179 @@
+#!/bin/bash
+#
+# Script to Plot EAGLE station locations
+#   Natalie Accardo (LDEO)
+#
+
+gmt gmtset MAP_FRAME_PEN  5
+gmt gmtset MAP_FRAME_WIDTH 0.1
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset FONT_TITLE Helvetica-Bold
+gmt gmtset FONT_LABEL Helvetica-Bold 14p
+gmt gmtset PS_PAGE_ORIENTATION portrait
+gmt gmtset PS_MEDIA=Custom_15ix15i
+gmt gmtset FORMAT_GEO_MAP ddd.mmF
+
+# gmtset FRAME_PEN 10
+# gmtset FRAME_WIDTH 0.075
+# gmtset ANOT_OFFSET 0.075
+# gmtset BASEMAP_TYPE plain
+# 
+# gmtset ANOT_FONT_SIZE 12p
+# gmtset GRID_PEN 0.3p
+# gmtset ANOT_FONT Helvetica-Bold
+# gmtset ANOT_FONT_SIZE 12
+# gmtset HEADER_FONT Helvetica-Bold
+# gmtset HEADER_FONT_SIZE 14p
+# gmtset LABEL_FONT Helvetica-Bold
+# gmtset LABEL_FONT_SIZE 12p
+# gmtset PAGE_ORIENTATION portrait
+# gmtset PAPER_MEDIA letter+
+# #gmtset PAPER_MEDIA=Custom_25ix32i
+# gmtset PLOT_DEGREE_FORMAT ddd.mmF
+
+PS1=SEGMeNT_scienceV3.ps
+INT="../grds/LMalawi_SRT3m.int"
+REGION="32/36.25/-12/-8"
+SCALE=2.3i
+CPT="../regional/ethiopia.cpt"
+# GRID="../grds/etopo1.grd"
+GRID="../grds/LMalawi_SRT3m.grd"
+
+# Colors!
+RED="231/47/39"
+ORANGE="255/165/0"
+GREEN="19/166/50"
+LGREEN="69/179/113"
+DBLUE="44/77/143"
+BLUE="65/105/225"
+TURQ="64/224/200"
+PURP="186/85/211"
+LBLUE="135/206/235"
+GREY="80/80/80"
+
+# Datasets
+GEOCHEM=geochem_latlon.txt
+# SEIS=segment_seis2014.txt
+SEIS=temp
+SEIS14="Seismic_Summer2014.txt"
+SEIS2013=seis_2013_latlon.txt
+VOLC="../regional/volcanos.txt"
+MT="MT_latlon.txt"
+MT14="MT_Summer2014.txt"
+GPS="GPS_latlon.txt"
+# L1AMCS=line1a_lake_mcs.dat
+# L1AOBS=line1a_lake_obslocs.dat
+# # L1BMCS=line1b_lake_mcs.dat
+# L1BOBS=line1b_lake_obslocs.dat
+# # L2MCS=line2_lake_mcs.dat
+# L2OBS=line2_lake_obslocs.dat
+# # L3MCS=line3_lake_mcs.dat
+# L3OBS=line3_lake_obslocs.dat
+OBS="new_locs/all_obs.txt"
+# G1=grid_lines_ew_utm_funded.dat
+# G2=grid_lines_ne-sw_funded.dat
+# G3=grid_lines_ne_sw_new.dat
+# G4=grid_lines_ns_funded.dat
+# G5=grid_lines_ns_new.dat
+# G6=grid_lines_nw-se_funded.dat
+# G7=grid_lines_nw-se_new.dat
+MCS500="new_locs/500_cu_inch.mcs"
+MCS1540="new_locs/1540_cu_inch.mcs"
+MCS3120="new_locs/3120_cu_inch.mcs"
+
+rm $PS1
+
+# gmt grdgradient $GRID -A270 -Nt0.5 -G$INT
+gmt grdimage $GRID -I$INT -C$CPT -R$REGION -Jm$SCALE -Bf0.5a1/f0.5a1:.:WeSn -V -K -Y5 -X1.3 > $PS1
+gmt pscoast -Jm -R -S$LBLUE -Di -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+gmt psbasemap -Jm -R -Bf0.5g0.5/f0.5g0.5:."":WeSn -V -O -K >> $PS1
+# echo here
+# Plot the volcanos
+# psxy $VOLC -St0.15i -Gred -Jm -R -O -V -K -: >> $PS1
+
+# Plot Lake Work
+# awk '!(NR % 2) {print $1 "\t" $2 "\n" ">"} (NR % 2) {print ">" "\n" $1 "\t" $2}' $G1 > temp1
+# # echo here
+# gmt psxy temp1 -W1p,$GREY  -Jm -R -V -O -K -: >> $PS1
+echo here
+gmt psxy $MCS500 -W1p,$GREY -Jm -R -V -O -K >> $PS1
+gmt psxy $MCS1540 -W1p,$RED -Jm -R -V -O -K >> $PS1
+gmt psxy $MCS3120 -W1p,$GREEN -Jm -R -V -O -K >> $PS1
+# gmt psxy $G2 -W1p,$GREY  -Jm -R -V -O -K >> $PS1
+# gmt psxy $G3 -W1p,$GREY  -Jm -R -V -O -K >> $PS1
+# gmt psxy $G4 -W1p,$GREY  -Jm -R -V -O -K >> $PS1
+# gmt psxy $G5 -W1p,$GREY  -Jm -R -V -O -K >> $PS1
+# gmt psxy $G6 -W1p,$GREY  -Jm -R -V -O -K >> $PS1
+# gmt psxy $G7 -W1p,$GREY  -Jm -R -V -O -K >> $PS1
+# 
+# gmt psxy $L1AMCS -W2p,$DBLUE  -Jm -R -V -O -K >> $PS1
+# gmt psxy $L1AOBS -Sc0.25 -G$ORANGE -W1p,$DBLUE  -Jm -R -V -O -K >> $PS1
+# gmt psxy $L1BMCS -W2p,$DBLUE  -Jm -R -V -O -K >> $PS1
+# gmt psxy $L1BOBS -Sc0.25 -G$ORANGE -W1p,$DBLUE  -Jm -R -V -O -K >> $PS1
+# gmt psxy $L2MCS -W2p,$DBLUE  -Jm -R -V -O -K >> $PS1
+# gmt psxy $L2OBS -Sc0.25 -G$ORANGE -W1p,$DBLUE  -Jm -R -V -O -K >> $PS1
+# gmt psxy $L3MCS -W2p,$DBLUE  -Jm -R -V -O -K >> $PS1
+# gmt psxy $L3OBS -Sc0.25 -G$ORANGE -W1p,$DBLUE  -Jm -R -V -O -K >> $PS1
+
+gmt psxy $OBS -Sc0.25 -W1p,$BLUE -Jm -R -V -O -K >> $PS1
+# Plot geochem locations
+echo here
+gmt psxy $GEOCHEM -Sd0.3 -G255/255/255 -W1p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot GPS locations
+gmt psxy $GPS -Sa0.6 -G$BLUE -W2p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+
+# Plot MT locations
+gmt psxy $MT -Sc0.35 -G$PURP -W2p,0/0/0 -Jm -R -V -O -: -K >> $PS1
+awk '{print $3 " " $4}' $MT14 > temp2
+gmt psxy temp2 -Sc0.35 -G$GREY -Jm -R -V -O -: -K >> $PS1
+
+# Plot seismic stations
+# gmt psxy $SEIS2013 -Si0.35 -G$LGREEN -W1p,0/0/0 -Jm -R -V -O -K -: >> $PS1
+awk '{print $2 " " $3}' $SEIS14 > temp
+gmt psxy temp -Si0.35 -GRED -W1p,0/0/0 -Jm -R -V -O -: >> $PS1
+# gmt psxy $SEIS -Si0.35 -G$RED -W1p,0/0/0 -Jm -R -V -O -: >> $PS1
+
+# 
+# cat $ACS | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$1, $2, 9, 0, 31, "CM", $3)}' > $ACS_1off
+# psxy   $ACS_1off -Sc0.35 -G3/86/155 -W1p,0/0/0 -Jm -R -V -O -K -: >> $PS1
+# pstext  $ACS_1off -G3/86/155 -D0.0/-0.4 -Jm -R -O -V -K -: >> $PS1
+# 
+# 
+# Then Phase 3
+# want to follow this format
+# -144.84803      10.77550        8       0       31      CM      B05
+# cat $A07 | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$2, $1, 9, 0, 31, "RM", $3)}' > $A07_1off
+# psxy   $A07_1off -Sc0.35 -G238/113/25 -W1p,0/0/0 -Jm -R -O -V -K >> $PS1
+# pstext  $A07_1off  -D-0.4/-0.0  -Jm -R -O -V -K >> $PS1
+# 
+# EAGLE
+# cat $PHASE1 | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$1, $2, 15, 231/47/39, 31, "CM", $3)}' > $PHASE1_1off
+# psxy   $PHASE1_1off -Sc0.35 -G231/47/39 -W1p,0/0/0 -Jm -R -O -K >> $PS1
+# 
+# Then EKBSE
+# cat $EKBSE | \
+# awk '{printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$2, $1, 15, 0, 31, "CM", $3)}' > $EKBSE_1off
+# psxy $EKBSE_1off -Sc0.35 -G30/144/255 -W1p,0/0/0 -Jm -R -V -O -K  >> $PS1
+# 
+# 
+# The GSN stations
+# psxy -Sc0.35 -G255/255/255 -W1p,0/0/0 -Jm -R -V -O -K >> $PS1 <<!
+# 38.6798 8.8952
+# 42.847 11.53
+# !
+# 
+# 
+#  psscale -D1.5i/-0.5i/4i/0.5ih -S -O -Cethiopia.cpt -B500:Elevation:/:m: >> $PS1
+# 
+# gmtset COLOR_MODEL RGB
+# gmtset FRAME_PEN 3
+# gmtset FRAME_WIDTH 0.075
+
+open $PS1
+# gs $PS1
+# pstopdf $PS1
+# open EG_Big.pdf

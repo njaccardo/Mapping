@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# Script to Plot EAGLE station locations
+#   Natalie Accardo (LDEO)
+#
+
+gmt gmtset MAP_FRAME_PEN  3
+gmt gmtset MAP_FRAME_WIDTH 0.1
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset FONT_TITLE Helvetica-Bold
+gmt gmtset FONT_LABEL Helvetica-Bold 14p
+gmt gmtset PS_PAGE_ORIENTATION portrait
+gmt gmtset PS_MEDIA=Custom_15ix15i
+gmt gmtset FORMAT_GEO_MAP ddd.mmF
+
+PS1=SEG_wRukwa.ps
+# INT="../grds/LMalawi_SRT3m.int"
+REGION="30/36.25/-12/-6"
+SCALE=1.8i
+CPT="LMalawi.cpt"
+# GRID="../grds/LMalawi_SRT3m.grd"
+GRID="../grds/Rukwa_SRTM3m.grd"
+INT="../grds/Rukwa_SRTM3m.int"
+
+
+# Colors!
+RED="231/47/39"
+ORANGE="255/165/0"
+GREEN="19/166/50"
+LGREEN="69/179/113"
+DBLUE="44/77/143"
+BLUE="65/105/225"
+TURQ="64/224/200"
+PURP="186/85/211"
+LBLUE="135/206/235"
+GREY="80/80/80"
+
+# Datasets
+VOLC="../tectonic/volcanos.txt"
+onshoreBB="passive_BB"
+offshoreBB="OBS_BB"
+rm $PS1
+
+# make illumination file -- only need to do this once
+# gmt grdgradient $GRID -A270 -Nt0.5 -G$INT
+
+# grid the image
+gmt grdimage $GRID -I$INT -C$CPT -R$REGION -Jm$SCALE -Bf0.5a1/f0.5a1:.:WeSn -V -K -Y5 -X1.3 > $PS1
+
+# plot coastlines
+gmt pscoast -Jm -R -S$LBLUE -Di -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+
+# create basemap
+gmt psbasemap -Jm -R -Bf0.5g0.5/f0.5g0.5:."":WeSn -V -O -K >> $PS1
+
+# plot volcanoes
+gmt psxy $VOLC -St0.15i -Gred -Jm -R -O -V -K -: >> $PS1
+
+OBJSIZE=0.5
+
+# Plot stations
+awk '{print $2 " " $3}' $onshoreBB > temp
+gmt psxy temp -Si${OBJSIZE} -W1p -G$TURQ -Jm -R -V -O -K -: >> $PS1
+
+awk '{print $2 " " $3}' $offshoreBB > temp
+gmt psxy temp -Si${OBJSIZE} -W1p -G$ORANGE -Jm -R -V -O -K -: >> $PS1
+
+gmt psxy Rukwa_Stations.txt -Si${OBJSIZE} -W1p -G$PURP -Jm -R -V -O -K -: >> $PS1
+
+gs $PS1

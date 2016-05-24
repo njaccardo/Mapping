@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# Script to Plot Lake Malawi
+#   Natalie Accardo (LDEO)
+#
+
+gmt gmtset MAP_FRAME_PEN  2
+gmt gmtset MAP_FRAME_WIDTH 0.1
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset FONT_TITLE Helvetica-Bold
+gmt gmtset FONT_LABEL Helvetica-Bold 14p
+gmt gmtset PS_PAGE_ORIENTATION portrait
+gmt gmtset PS_MEDIA=A4
+gmt gmtset FORMAT_GEO_MAP ddd.mmF
+
+PS1=main_OBS_all_lines.ps
+INT="../grds/LMalawi_SRT3m.int"
+REGION="33.85/35/-12/-9.3"
+SCALE=3.5i
+CPT="LMalawi.cpt"
+SHOT_CPT="shot4.cpt"
+GRID="../grds/LMalawi_SRT3m.grd"
+
+tracks1=SEGMeNT_shot_leg1.txt 
+tracks2=SEGMeNT_shot_leg2.txt 
+tracks3=SEGMeNT_shot_leg3.txt 
+tracks4=SEGMeNT_shot_leg4.txt 
+
+# Colors!
+RED="231/47/39"
+ORANGE="255/165/0"
+GREEN="19/166/50"
+LGREEN="69/179/113"
+DBLUE="44/77/143"
+BLUE="65/105/225"
+TURQ="64/224/200"
+PURP="186/85/211"
+LBLUE="135/206/235"
+GREY="160/160/160"
+YELLOW="255/228/15"
+
+# Datasets
+OBS="segment_obs_deploy.txt"
+
+cat SEGMeNT_shot_leg1.txt > all_shot
+cat SEGMeNT_shot_leg2.txt >> all_shot
+cat SEGMeNT_shot_leg3.txt >> all_shot
+cat SEGMeNT_shot_leg4.txt >> all_shot
+ 
+rm $PS1
+# gmt grdgradient $GRID -A270 -Nt0.5 -G$INT
+# gmt makecpt -Cafar.cpt -T0/3000/500 -Z > $CPT
+# gmt makecpt -Cpolar.cpt -T0/270/90 -V > $SHOT_CPT
+gmt grdimage $GRID -I$INT -C$CPT -R$REGION -Jm$SCALE -Bf0.5a1/f0.5a1:.:WeSn -V -K -Y2 -X3 > $PS1
+# gmt pscoast -Jm -R -Df -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+gmt pscoast -Jm -R -S$LBLUE -Df -W1p,/0/0/0 -N1p,0/0/0 -V -O -K >> $PS1
+# gmt psbasemap -Jm -R -Bf0.5g0.5/f0.5g0.5:."":WeSn -V -O -K >> $PS1
+
+# Plot lake malawi
+# awk '{print $2 " " $3}' Lake_Malawi_Simple_latlon.txt > temp
+gmt psxy LM_outline -G$LBLUE -Jm -R -V -O -K -: >> $PS1
+
+
+## Plot all shot locations
+echo 1
+awk '{print $1 " " $2 " " $4}' $tracks1 > temp
+gmt psxy temp -Sc0.06 -G$GREY -Jm -R -V -O -: -K >> $PS1
+echo 2
+awk '{print $1 " " $2 " " $4}' $tracks2 > temp
+gmt psxy temp -Sc0.06 -G$GREY -Jm -R -V -O -: -K >> $PS1 
+echo 3
+awk '{print $1 " " $2 " " $4}' $tracks3 > temp
+gmt psxy temp -Sc0.06 -G$GREY -Jm -R -V -O -: -K >> $PS1  
+echo 4
+awk '{print $1 " " $2 " " $4}' $tracks4 > temp
+gmt psxy temp -Sc0.06 -G$GREY -Jm -R -V -O -: -K >> $PS1 
+
+# Plot OBS lines
+awk '{print $2 " " $3}' 001A_lat.txt |\
+gmt psxy -W4p,$RED -Jm -R -V -O -K -: >> $PS1
+tail -n1 001A_lat.txt | awk '{print $2 " " $3 " 001A"}' |\
+gmt pstext -R -D0.25/0 -Jm -V -O -P -K -F+f14p,Helvetica,$RED+jLT -: >> $PS1
+awk '{print $2 " " $3}' 001B_lat.txt |\
+gmt psxy -W4p,$GREEN -Jm -R -V -O -K -: >> $PS1
+head -n1 001B_lat.txt | awk '{print $2 " " $3 " 001B"}' |\
+gmt pstext -R -D0.25/0 -Jm -V -O -P -K -F+f14p,Helvetica,$GREEN+jLT -: >> $PS1
+awk '{print $2 " " $3}' 001_lat.txt |\
+gmt psxy -W4p,$PURP -Jm -R -V -O -K -: >> $PS1
+head -n1 001_lat.txt | awk '{print $2 " " $3 " 001"}' |\
+gmt pstext -R -D0.25/0 -Jm -V -O -P -K -F+f14p,Helvetica,$PURP+jLT -: >> $PS1
+awk '{print $2 " " $3}' 002_lat.txt |\
+gmt psxy -W4p,$BLUE -Jm -R -V -O -K -: >> $PS1
+head -n1 002_lat.txt | awk '{print $2 " " $3 " 002"}' |\
+gmt pstext -R -D0.25/0 -Jm -V -O -P -K -F+f14p,Helvetica,$BLUE+jLT -: >> $PS1
+awk '{print $2 " " $3}' 003_lat.txt |\
+gmt psxy -W4p,$YELLOW -Jm -R -V -O -K -: >> $PS1
+head -n1 003_lat.txt | awk '{print $2 " " $3 " 003"}' |\
+gmt pstext -R -D0.25/0 -Jm -V -O -K -P -F+f14p,Helvetica,$YELLOW+jLT -: >> $PS1
+
+# Plot OBS locations
+awk '{print $2 " " $3}' $OBS > temp4
+gmt psxy temp4 -Sc0.25 -G255/255/255 -Jm -R -V -O -K >> $PS1
+
+awk '{print $2 " " $3 " 6 0 1 LT " $1}' $OBS > temp4
+gmt pstext temp4 -R -Jm -V -O -P >> $PS1
+
+gmt pscoast -Jm -R -Df -V -W2 -M > LMalawi.txt
+
+# gmt psscale -D1.5i/-0.5i/4i/0.5ih -X0.5 -S -O -P -C$SHOT_CPT -B25:"Shot Spacing":/:m: >> $PS1
+open $PS1
